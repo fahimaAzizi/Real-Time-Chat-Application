@@ -1,122 +1,99 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+
+import "./App.css";
+
+const rooms = [
+  { id: 1, name: "general", icon: "#" },
+  { id: 2, name: "technology", icon: "#" },
+  { id: 3, name: "study-room", icon: "#" },
+];
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
+    <main className="chat-app">
+      <aside className="sidebar">
+        <div className="brand">
+          <div className="brand-icon">F</div>
+          <div>
+            <h1>F5 Chat</h1>
+            <p>Stay connected</p>
+          </div>
         </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
+
+        <div className="sidebar-section">
+          <div className="section-heading">
+            <span>YOUR ROOMS</span>
+            <button className="add-room" aria-label="Add room">
+              +
+            </button>
+          </div>
+
+          <nav className="room-list" aria-label="Chat rooms">
+            {rooms.map((room, index) => (
+              <button
+                className={`room-item ${index === 0 ? "active" : ""}`}
+                key={room.id}
+              >
+                <span className="room-icon">{room.icon}</span>
+                <span>{room.name}</span>
+              </button>
+            ))}
+          </nav>
         </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
+
+        <div className="sidebar-bottom">
+          <div className="avatar">G</div>
+          <div className="user-details">
+            <strong>Guest User</strong>
+            <span>
+              <i className="online-dot" /> Online
+            </span>
+          </div>
+          <button className="profile-menu" aria-label="Profile menu">
+            ⋯
+          </button>
+        </div>
+      </aside>
+
+      <section className="chat-panel">
+        <header className="chat-header">
+          <div>
+            <span className="eyebrow">ROOM</span>
+            <h2># general</h2>
+          </div>
+          <div className="header-status">
+            <i className="online-dot" />
+            Ready to connect
+          </div>
+        </header>
+
+        <div className="messages">
+          <div className="welcome">
+            <div className="welcome-icon">#</div>
+            <h2>Welcome to #general</h2>
+            <p>
+              This is the beginning of your conversation.
+              Your messages will appear here.
+            </p>
+          </div>
+        </div>
+
+        <form className="message-form">
+          <input
+            type="text"
+            placeholder="Your message will go here..."
+            aria-label="Message"
+            disabled
+          />
+          <button type="button" disabled>
+            Send ↑
+          </button>
+        </form>
+        <p className="composer-hint">
+          Real-time messaging will be added in a later step.
+        </p>
       </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+    </main>
+  );
 }
 
-export default App
+export default App;
