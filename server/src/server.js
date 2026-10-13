@@ -4,7 +4,7 @@ const http = require("http");
 const cors = require("cors");
 const { Server } = require("socket.io");
 require("dotenv").config();
-
+const authRoutes = require("./authRoutes");
 const prisma = require("./prisma");
 
 const app = express();
@@ -15,6 +15,7 @@ app.use(
     origin: process.env.CLIENT_URL || "http://localhost:5173",
   }),
 );
+app.use("/api/auth", authRoutes);
 
 app.use(express.json());
 
