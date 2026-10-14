@@ -48,27 +48,19 @@ app.get("/api/health/db", async (req, res) => {
   }
 });
 
+
 io.on("connection", (socket) => {
-  console.log("Client connected:", socket.id);
+  console.log("User connected:", socket.id);
 
   socket.emit("connection:ready", {
-    message: "Connected to the F5 Chat server!",
-  });
-
-  socket.on("test:message", (text) => {
-    if (typeof text !== "string") return;
-
-    console.log("Test message received:", text);
-
-    socket.emit("test:reply", {
-      message: `Server received: ${text}`,
-    });
+    message: "Connected to F5 Chat!",
   });
 
   socket.on("disconnect", () => {
-    console.log("Client disconnected:", socket.id);
+    console.log("User disconnected:", socket.id);
   });
 });
+
 
 const PORT = process.env.PORT || 5000;
 
