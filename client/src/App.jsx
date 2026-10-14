@@ -2,8 +2,39 @@
 import { useState } from "react";
 import api from "./api";
 import "./App.css";
+import { useEffect } from "react";
+import { socket } from "./socket";
 
 export default function App() {
+  
+const [socketStatus, setSocketStatus] = useState("Disconnected");
+
+useEffect(() => {
+  if (!token) {
+    socket.disconnect();
+    setSocketStatus("Disconnected");
+    return;
+  }
+
+  function handleConnect() {
+    setSocketStatus("Connected");
+  }
+
+  function handleDisconnect() {
+    setSocketStatus("Disconnected");
+  }
+
+  socket.on("connect", handleConnect);
+  socket.on("disconnect", handleDisconnect);
+  socket.connect();
+
+  return () => {
+    socket.off("connect", handleConnect);
+    socket.off("disconnect", handleDisconnect);
+    socket.disconnect();
+  };
+}, [token]);
+
   const [mode, setMode] = useState("login");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
