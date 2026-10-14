@@ -1,99 +1,171 @@
 
+import { useState } from "react";
+import api from "./api";
 import "./App.css";
 
-const rooms = [
-  { id: 1, name: "general", icon: "#" },
-  { id: 2, name: "technology", icon: "#" },
-  { id: 3, name: "study-room", icon: "#" },
-];
+export default function App() {
+  const [mode, setMode] = useState("login");
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState(null);
+  const [token, setToken] = useState("");
 
-function App() {
+  async function handleSubmit(event) {
+    event.preventDefault();
+    setMessage("");
+    setLoading(true);
+
+    try {
+      if (mode === "register") {
+        await api.post("/auth/register", {
+          username,
+          email,
+          password,
+        });
+
+        setMessage("Account created! You can now log in.");
+        setMode("login");
+        setPassword("");
+      } else {
+        const response = await api.post("/auth/login", {
+          email,
+          password,
+        });
+
+        setToken(response.data.token);
+        setUser(response.data.user);
+        setMessage("Login successful!");
+        setPassword("");
+      }
+    } catch (error) {
+      setMessage(
+        error.response?.data?.message ||
+          "Something went wrong. Check your server."
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function logout() {
+    setUser(null);
+    setToken("");
+    setPassword("");
+    setMessage("You have logged out.");
+  }
+
+  if (user) {
+    return (
+      <main className="app-shell">
+        <section className="auth-card">
+          <div className="logo">F5</div>
+          <p className="eyebrow">WELCOME TO YOUR WORKSPACE</p>
+          <h1>Hello, {user.username}!</h1>
+          <p className="subtitle">{user.email}</p>
+          <p className="status">● You are logged in</p>
+          <p className="subtitle">
+            Your chat workspace is ready for the next step.
+          </p>
+          <button className="primary-button" onClick={logout}>
+            Log out
+          </button>
+          <p className="feedback">{message}</p>
+        </section>
+      </main>
+    );
+  }
+
   return (
-    <main className="chat-app">
-      <aside className="sidebar">
-        <div className="brand">
-          <div className="brand-icon">F</div>
-          <div>
-            <h1>F5 Chat</h1>
-            <p>Stay connected</p>
-          </div>
-        </div>
+    <main className="app-shell">
+      <section className="auth-card">
+        <div className="logo">F5</div>
+        <p className="eyebrow">YOUR SPACE. YOUR CONVERSATIONS.</p>
+        <h1>{mode === "login" ? "Welcome back" : "Create your account"}</h1>
+        <p className="subtitle">
+          {mode === "login"
+            ? "Sign in to continue to your workspace."
+            : "Join your team and start connecting."}
+        </p>
 
-        <div className="sidebar-section">
-          <div className="section-heading">
-            <span>YOUR ROOMS</span>
-            <button className="add-room" aria-label="Add room">
-              +
-            </button>
-          </div>
-
-          <nav className="room-list" aria-label="Chat rooms">
-            {rooms.map((room, index) => (
-              <button
-                className={`room-item ${index === 0 ? "active" : ""}`}
-                key={room.id}
-              >
-                <span className="room-icon">{room.icon}</span>
-                <span>{room.name}</span>
-              </button>
-            ))}
-          </nav>
-        </div>
-
-        <div className="sidebar-bottom">
-          <div className="avatar">G</div>
-          <div className="user-details">
-            <strong>Guest User</strong>
-            <span>
-              <i className="online-dot" /> Online
-            </span>
-          </div>
-          <button className="profile-menu" aria-label="Profile menu">
-            ⋯
+        <div className="auth-tabs">
+          <button
+            className={mode === "login" ? "tab active" : "tab"}
+            onClick={() => {
+              setMode("login");
+              setMessage("");
+            }}
+            type="button"
+          >
+            Login
+          </button>
+          <button
+            className={mode === "register" ? "tab active" : "tab"}
+            onClick={() => {
+              setMode("register");
+              setMessage("");
+            }}
+            type="button"
+          >
+            Register
           </button>
         </div>
-      </aside>
 
-      <section className="chat-panel">
-        <header className="chat-header">
-          <div>
-            <span className="eyebrow">ROOM</span>
-            <h2># general</h2>
-          </div>
-          <div className="header-status">
-            <i className="online-dot" />
-            Ready to connect
-          </div>
-        </header>
+        <form onSubmit={handleSubmit}>
+          {mode === "register" && (
+            <label>
+              Username
+              <input
+                value={username}
+                onChange={(event) => setUsername(event.target.value)}
+                placeholder="Choose a username"
+                autoComplete="username"
+                required
+              />
+            </label>
+          )}
 
-        <div className="messages">
-          <div className="welcome">
-            <div className="welcome-icon">#</div>
-            <h2>Welcome to #general</h2>
-            <p>
-              This is the beginning of your conversation.
-              Your messages will appear here.
-            </p>
-          </div>
-        </div>
+          <label>
+            Email address
+            <input
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder="you@example.com"
+              autoComplete="email"
+              required
+            />
+          </label>
 
-        <form className="message-form">
-          <input
-            type="text"
-            placeholder="Your message will go here..."
-            aria-label="Message"
-            disabled
-          />
-          <button type="button" disabled>
-            Send ↑
+          <label>
+            Password
+            <input
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder="At least 8 characters"
+              autoComplete={
+                mode === "login" ? "current-password" : "new-password"
+              }
+              minLength={8}
+              required
+            />
+          </label>
+
+          <button className="primary-button" disabled={loading}>
+            {loading
+              ? "Please wait..."
+              : mode === "login"
+                ? "Sign in"
+                : "Create account"}
           </button>
         </form>
-        <p className="composer-hint">
-          Real-time messaging will be added in a later step.
-        </p>
+
+        <p className="feedback" role="status">{message}</p>
+        <p className="footer-note">Secure conversations start here.</p>
       </section>
     </main>
   );
 }
-
-export default App;
