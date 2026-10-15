@@ -6,8 +6,26 @@ import { useEffect } from "react";
 import { socket } from "./socket";
 
 export default function App() {
-  
+  const [activeRoom, setActiveRoom] = useState("general");
+const [roomStatus, setRoomStatus] = useState("");
 const [socketStatus, setSocketStatus] = useState("Disconnected");
+
+
+function joinRoom(roomName) {
+  if (!socket.connected) {
+    setRoomStatus("Connect to the server first.");
+    return;
+  }
+
+  socket.emit("room:join", roomName, (response) => {
+    if (response?.success) {
+      setActiveRoom(roomName);
+      setRoomStatus(`Joined ${roomName}`);
+    } else {
+      setRoomStatus(response?.message || "Could not join room.");
+    }
+  });
+}
 
 useEffect(() => {
   if (!token) {
@@ -98,8 +116,10 @@ useEffect(() => {
           <p className="subtitle">{user.email}</p>
           <p className="status">● You are logged in</p>
           <p className="subtitle">
-            Your chat workspace is ready for the next step.
+            Server connection: {socketStatus}
           </p>
+          Your chat workspace is ready for the next step.
+        
           <button className="primary-button" onClick={logout}>
             Log out
           </button>

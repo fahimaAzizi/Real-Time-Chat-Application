@@ -49,6 +49,9 @@ app.get("/api/health/db", async (req, res) => {
 });
 
 
+
+const allowedRooms = ["general", "technology", "study-room"];
+
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
 
@@ -56,10 +59,34 @@ io.on("connection", (socket) => {
     message: "Connected to F5 Chat!",
   });
 
+  socket.on("room:join", (roomName, callback) => {
+    if (!allowedRooms.includes(roomName)) {
+      return callback?.({
+        success: false,
+        message: "Invalid room.",
+      });
+    }
+
+    for (const room of allowedRooms) {
+      socket.leave(room);
+    }
+
+    socket.join(roomName);
+
+    console.log(`${socket.id} joined ${roomName}`);
+
+    callback?.({
+      success: true,
+      room: roomName,
+      message: `Joined ${roomName}`,
+    });
+  });
+
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
   });
 });
+
 
 
 const PORT = process.env.PORT || 5000;
