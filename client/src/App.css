@@ -175,3 +175,35 @@ input:focus {
     font-size: 26px;
   }
 }
+
+.room-list {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #374151;
+}
+
+.room-list h3 {
+  margin-bottom: 12px;
+  font-size: 15px;
+}
+
+.room-button {
+  display: block;
+  width: 100%;
+  margin: 8px 0;
+  padding: 12px;
+  border: 1px solid #374151;
+  border-radius: 10px;
+  background: #111827;
+  color: #d1d5db;
+  text-align: left;
+  cursor: pointer;
+}
+
+.room-button:hover,
+.room-button.active {
+  border-color: #8b5cf6;
+  background: #312e81;
+  color: #ffffff;
+}
+
