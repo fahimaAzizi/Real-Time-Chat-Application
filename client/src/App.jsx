@@ -27,6 +27,24 @@ function joinRoom(roomName) {
   });
 }
 
+
+<div className="room-list">
+  <h3>Chat Rooms</h3>
+
+  {["general", "technology", "study-room"].map((room) => (
+    <button
+      key={room}
+      className={activeRoom === room ? "room-button active" : "room-button"}
+      onClick={() => joinRoom(room)}
+    >
+      # {room}
+    </button>
+  ))}
+
+  <p className="subtitle">Current room: {activeRoom}</p>
+  <p className="feedback" role="status">{roomStatus}</p>
+</div>
+
 useEffect(() => {
   if (!token) {
     socket.disconnect();
