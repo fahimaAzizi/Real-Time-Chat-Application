@@ -16,19 +16,10 @@ const PORT = process.env.PORT || 5000;
 
 const allowedRooms = ["general", "technology", "study-room"];
 
-// Middleware
-app.use(
-  cors({
-    origin: CLIENT_URL,
-  }),
-);
-
+app.use(cors({ origin: CLIENT_URL }));
 app.use(express.json());
-
-// Authentication routes
 app.use("/api/auth", authRoutes);
 
-// Socket.IO setup
 const io = new Server(server, {
   cors: {
     origin: CLIENT_URL,
@@ -36,14 +27,10 @@ const io = new Server(server, {
   },
 });
 
-// API home
 app.get("/", (req, res) => {
-  res.json({
-    message: "F5 Chat API is running!",
-  });
+  res.json({ message: "F5 Chat API is running!" });
 });
 
-// Database health check
 app.get("/api/health/db", async (req, res) => {
   try {
     await prisma.$queryRaw`SELECT 1`;
@@ -54,7 +41,6 @@ app.get("/api/health/db", async (req, res) => {
     });
   } catch (error) {
     console.error("Database health check failed:", error.message);
-
     res.status(500).json({
       status: "error",
       message: "Database connection failed.",
@@ -62,7 +48,50 @@ app.get("/api/health/db", async (req, res) => {
   }
 });
 
-// Socket.IO connections
+// Retrieve saved messages for a room
+app.get("/api/rooms/:roomName/messages", async (req, res) => {
+  try {
+    const { roomName } = req.params;
+
+    if (!allowedRooms.includes(roomName)) {
+      return res.status(400).json({ message: "Invalid room." });
+    }
+
+    const room = await prisma.room.findFirst({
+      where: { name: roomName },
+      orderBy: { createdAt: "asc" },
+    });
+
+    if (!room) {
+      return res.json({ messages: [] });
+    }
+
+    const messages = await prisma.message.findMany({
+      where: { roomId: room.id },
+      orderBy: { createdAt: "asc" },
+      take: 100,
+      include: {
+        sender: {
+          select: { id: true, username: true },
+        },
+      },
+    });
+
+    res.json({
+      messages: messages.map((message) => ({
+        id: message.id,
+        room: roomName,
+        content: message.content,
+        sender: message.sender.username,
+        createdAt: message.createdAt,
+      })),
+    });
+  } catch (error) {
+    console.error("Message history error:", error.message);
+    res.status(500).json({ message: "Could not load message history." });
+  }
+});
+
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
 
@@ -70,86 +99,149 @@ io.on("connection", (socket) => {
     message: "Connected to F5 Chat!",
   });
 
-  // Join a chat room
-  socket.on("room:join", (roomName, callback) => {
-    if (!allowedRooms.includes(roomName)) {
-      return callback?.({
+  socket.on("room:join", async (roomName, callback) => {
+    try {
+      if (!allowedRooms.includes(roomName)) {
+        return callback?.({
+          success: false,
+          message: "Invalid room.",
+        });
+      }
+
+      // Temporary room owner until authenticated room management is added.
+      let room = await prisma.room.findFirst({
+        where: { name: roomName },
+        orderBy: { createdAt: "asc" },
+      });
+
+      if (!room) {
+        const user = await prisma.user.findFirst({
+          orderBy: { createdAt: "asc" },
+        });
+
+        if (!user) {
+          return callback?.({
+            success: false,
+            message: "Register an account before joining chat rooms.",
+          });
+        }
+
+        room = await prisma.room.create({
+          data: {
+            name: roomName,
+            creatorId: user.id,
+          },
+        });
+      }
+
+      for (const name of allowedRooms) {
+        socket.leave(name);
+      }
+
+      socket.join(roomName);
+
+      console.log(`${socket.id} joined ${roomName}`);
+
+      callback?.({
+        success: true,
+        room: roomName,
+        message: `Joined ${roomName}`,
+      });
+    } catch (error) {
+      console.error("Room join error:", error.message);
+      callback?.({
         success: false,
-        message: "Invalid room.",
+        message: "Could not join the room. Check your database.",
       });
     }
-
-    // Leave other F5 chat rooms
-    for (const room of allowedRooms) {
-      socket.leave(room);
-    }
-
-    socket.join(roomName);
-
-    console.log(`${socket.id} joined ${roomName}`);
-
-    callback?.({
-      success: true,
-      room: roomName,
-      message: `Joined ${roomName}`,
-    });
   });
 
-  // Send a message to everyone in the selected room
-  socket.on("message:send", (data, callback) => {
-    const roomName = data?.room;
-    const content = data?.content;
+  socket.on("message:send", async (data, callback) => {
+    try {
+      const roomName = data?.room;
+      const content = data?.content;
 
-    if (!allowedRooms.includes(roomName)) {
-      return callback?.({
+      if (!allowedRooms.includes(roomName)) {
+        return callback?.({
+          success: false,
+          message: "Invalid room.",
+        });
+      }
+
+      if (!socket.rooms.has(roomName)) {
+        return callback?.({
+          success: false,
+          message: "Join the room before sending messages.",
+        });
+      }
+
+      if (typeof content !== "string" || !content.trim()) {
+        return callback?.({
+          success: false,
+          message: "Message cannot be empty.",
+        });
+      }
+
+      if (content.trim().length > 2000) {
+        return callback?.({
+          success: false,
+          message: "Message must be 2000 characters or fewer.",
+        });
+      }
+
+      const room = await prisma.room.findFirst({
+        where: { name: roomName },
+      });
+
+      const user = await prisma.user.findFirst({
+        orderBy: { createdAt: "asc" },
+      });
+
+      if (!room || !user) {
+        return callback?.({
+          success: false,
+          message: "Room or user not found.",
+        });
+      }
+
+      const savedMessage = await prisma.message.create({
+        data: {
+          content: content.trim(),
+          roomId: room.id,
+          senderId: user.id,
+        },
+        include: {
+          sender: {
+            select: { username: true },
+          },
+        },
+      });
+
+      const message = {
+        id: savedMessage.id,
+        room: roomName,
+        content: savedMessage.content,
+        sender: savedMessage.sender.username,
+        createdAt: savedMessage.createdAt,
+      };
+
+      io.to(roomName).emit("message:new", message);
+
+      callback?.({ success: true });
+    } catch (error) {
+      console.error("Message save error:", error.message);
+      callback?.({
         success: false,
-        message: "Invalid room.",
+        message: "Message could not be saved.",
       });
     }
-
-    if (typeof content !== "string" || !content.trim()) {
-      return callback?.({
-        success: false,
-        message: "Message cannot be empty.",
-      });
-    }
-
-    if (content.trim().length > 2000) {
-      return callback?.({
-        success: false,
-        message: "Message must be 2000 characters or fewer.",
-      });
-    }
-
-    if (!socket.rooms.has(roomName)) {
-      return callback?.({
-        success: false,
-        message: "Join the room before sending messages.",
-      });
-    }
-
-    const message = {
-      id: `${Date.now()}-${socket.id}`,
-      room: roomName,
-      content: content.trim(),
-      sender: "Guest",
-      createdAt: new Date().toISOString(),
-    };
-
-    io.to(roomName).emit("message:new", message);
-
-    callback?.({
-      success: true,
-    });
   });
 
-  // Disconnect
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
   });
 });
 
-// Start server
 server.listen(PORT, () => {
   console.log(`F5 server running on port ${PORT}`);
 });
