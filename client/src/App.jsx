@@ -3,8 +3,7 @@ import { useEffect, useState } from "react";
 import api from "./api";
 import { socket } from "./socket";
 import "./App.css";
-const API_URL =
-  import.meta.env.VITE_SERVER_URL || "http://localhost:5000";
+
 const ROOMS = ["general", "technology", "study-room"];
 
 export default function App() {
@@ -35,8 +34,8 @@ export default function App() {
     try {
       if (mode === "register") {
         await api.post("/auth/register", {
-          username,
-          email,
+          username: username.trim(),
+          email: email.trim(),
           password,
         });
 
@@ -45,7 +44,7 @@ export default function App() {
         setPassword("");
       } else {
         const response = await api.post("/auth/login", {
-          email,
+          email: email.trim(),
           password,
         });
 
@@ -54,16 +53,13 @@ export default function App() {
         setPassword("");
         setMessage("Login successful!");
       }
-
-        setToken(response.data.token);
-        setUser(response.data.user);
-        setPassword("");
-        setMessage("Login successful!");
-      }
     } catch (error) {
+      console.error("Authentication error:", error);
       setMessage(
         error.response?.data?.message ||
-          "Something went wrong. Check your server."
+          (error.code === "ERR_NETWORK"
+            ? "Cannot reach the server. Check that the backend is running and the database is connected."
+            : error.message || "Something went wrong. Check your server.")
       );
     } finally {
       setLoading(false);
@@ -86,12 +82,13 @@ export default function App() {
       setSocketStatus("Disconnected");
     }
 
+    // Socket.IO servers commonly read the token from socket.handshake.auth.
+    socket.auth = { token };
     socket.on("connect", handleConnect);
     socket.on("disconnect", handleDisconnect);
     socket.connect();
 
     return () => {
-      socket.authToken = token;
       socket.off("connect", handleConnect);
       socket.off("disconnect", handleDisconnect);
       socket.disconnect();
