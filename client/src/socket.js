@@ -6,4 +6,9 @@ const SERVER_URL =
 
 export const socket = io(SERVER_URL, {
   autoConnect: false,
+  auth: (callback) => {
+    callback({
+      token: socket.authToken || "",
+    });
+  },
 });
