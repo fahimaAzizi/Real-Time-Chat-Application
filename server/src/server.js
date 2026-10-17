@@ -7,7 +7,8 @@ const { Server } = require("socket.io");
 require("dotenv").config();
 
 const authRoutes = require("./authRoutes");
-const prisma = require("./prisma");
+app.use("/api/auth", authRoutes);
+
 
 const app = express();
 const server = http.createServer(app);
