@@ -84,6 +84,7 @@ export default function App() {
     socket.connect();
 
     return () => {
+      socket.authToken = token;
       socket.off("connect", handleConnect);
       socket.off("disconnect", handleDisconnect);
       socket.disconnect();
