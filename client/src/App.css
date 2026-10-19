@@ -665,3 +665,78 @@ input:focus-visible {
     align-items: flex-start;
     padding: 20px 16px;
   }
+
+  .chat-header h1 {
+    font-size: 20px;
+  }
+
+  .connection-badge {
+    gap: 6px;
+    padding: 7px 9px;
+    font-size: 10px;
+  }
+
+  .messages-area {
+    padding: 20px 13px;
+    gap: 16px;
+  }
+
+  .message {
+    max-width: 100%;
+    gap: 8px;
+  }
+
+  .message-avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  .message-content {
+    padding: 10px 12px;
+  }
+
+  .composer-area {
+    padding: 12px;
+  }
+
+  .message-form {
+    gap: 5px;
+  }
+
+  .message-form .primary-button {
+    padding: 11px 13px;
+  }
+
+  .composer-hint {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 420px) {
+  .app-shell {
+    padding: 14px;
+  }
+
+  .auth-card {
+    padding: 26px 21px;
+    border-radius: 22px;
+  }
+
+  .workspace {
+    grid-template-columns: 60px minmax(0, 1fr);
+  }
+
+  .sidebar {
+    padding-right: 5px;
+    padding-left: 5px;
+  }
+
+  .chat-header {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .message-meta {
+    gap: 7px;
+  }
+}
