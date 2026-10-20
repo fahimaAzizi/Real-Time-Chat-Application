@@ -1,40 +1,69 @@
 # F5 — Real-Time Chat Application
 
-A full-stack chat application built with React, Node.js, Express, Socket.IO, Prisma, and PostgreSQL.
+A full-stack real-time chat application built with React, Node.js, Express, Socket.IO, Prisma, and PostgreSQL.
 
 ## Features
-- User registration and login
-- Real-time messaging
+
+- User registration and login with JWT authentication
+- Real-time messaging using Socket.IO
 - Multiple chat rooms
-- Persistent message history
+- Persistent message history with PostgreSQL
 - Responsive Midnight Navy UI
-- JWT authentication
+- Full-stack architecture
 
 ## Tech Stack
+
 - **Frontend:** React, Vite, CSS
 - **Backend:** Node.js, Express
-- **Real-time:** Socket.IO
-- **Database:** PostgreSQL, Neon
+- **Real-time Communication:** Socket.IO
+- **Database:** PostgreSQL (Neon)
 - **ORM:** Prisma
-- **Authentication:** JWT
+- **Authentication:** JSON Web Tokens (JWT)
 
 ## Run Locally
 
-**Backend**
+### 1. Clone the repository
+
+```bash
+git clone YOUR_REPOSITORY_URL
+cd "Real-Time Chat Application"
+```
+
+### 2. Start the backend
+
 ```bash
 cd server
 npm install
-npm start
+npm run dev
 ```
 
-**Frontend**
+Configure your `server/.env` file with your database connection, client URL, and JWT secret before starting the backend.
+
+### 3. Start the frontend
+
+Open a second terminal:
+
 ```bash
 cd client
 npm install
 npm run dev
 ```
 
-Configure the required environment variables before running the application.
+Open the local URL displayed by Vite in your terminal.
+
+## Environment Variables
+
+Configure these variables in `server/.env`:
+
+- `DATABASE_URL`
+- `CLIENT_URL`
+- `JWT_SECRET`
+- `PORT`
+
+Never commit your `.env` file or expose your credentials.
 
 ## Project Status
-Completed — built as a full-stack development portfolio project.
+
+**F5 — Real-Time Chat Application**
+
+A portfolio project focused on full-stack development, authentication, database integration, and real-time communication.
