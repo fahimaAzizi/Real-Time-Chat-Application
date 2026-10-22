@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 import api from "./api";
 import { socket } from "./socket";
 import "./App.css";
-
+const API_URL =
+  import.meta.env.VITE_SERVER_URL || "http://localhost:5000";
 const ROOMS = ["general", "technology", "study-room"];
 
 export default function App() {
@@ -47,6 +48,12 @@ export default function App() {
           email,
           password,
         });
+
+        setToken(response.data.token);
+        setUser(response.data.user);
+        setPassword("");
+        setMessage("Login successful!");
+      }
 
         setToken(response.data.token);
         setUser(response.data.user);
